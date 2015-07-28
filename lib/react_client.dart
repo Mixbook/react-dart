@@ -438,18 +438,26 @@ SyntheticEvent syntheticFormEventFactory(JsObject e) {
 SyntheticDataTransfer syntheticDataTransferFactory(JsObject dt) {
   if (dt == null) return null;
   List<File> files = [];
-  if (dt["files"] is JsObject && dt["files"].hasProperty("length")) {
+  if (dt["files"] != null) {
     for (int i = 0; i < dt["files"]["length"]; i++) {
       files.add(dt["files"][i]);
     }
   }
   List<String> types = [];
-  if (dt["types"] is JsObject && dt["types"].hasProperty("length")) {
+  if (dt["types"] != null) {
     for (int i = 0; i < dt["types"]["length"]; i++) {
       types.add(dt["types"][i]);
     }
   }
-  return new SyntheticDataTransfer(dt["dropEffect"], dt["effectAllowed"], files, types);
+  var effectAllowed;
+  try {
+    // Works around a bug in IE where dragging from outside the browser fails.
+    // Trying to access this property throws the error "Unexpected call to method or property access.".
+    effectAllowed = dt["effectAllowed"];
+  } catch (exception) {
+    effectAllowed = "uninitialized";
+  }
+  return new SyntheticDataTransfer(dt["dropEffect"], effectAllowed, files, types);
 }
 
 SyntheticEvent syntheticMouseEventFactory(JsObject e) {
